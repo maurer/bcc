@@ -1,0 +1,19 @@
+OASISFormat: 0.4
+Name:        bap-constant-clusters
+Version:     0.1
+Synopsis:    Constant Clustering with BAP
+Authors:     Matthew Maurer
+Maintainers: Matthew Maurer <matthew.r.maurer@gmail.com>
+License:     MIT
+Copyrights:  (C) 2015 Carnegie Mellon University
+Plugins:     META (0.4)
+BuildTools: ocamlbuild, camlp4o
+BuildDepends:
+              bap
+
+Executable "dump-constants"
+  Path:           src/dump
+  MainIs:         dump.ml
+  Install:        true
+  CompiledObject: best
+  BuildDepends:   bap
