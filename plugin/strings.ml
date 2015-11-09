@@ -15,14 +15,12 @@ let strings_segment (proj : Project.t) (seg : mem) : Project.t =
   while Word.(!cur_addr <= (Memory.max_addr seg)) do
     let k = Memory.get seg ~addr:(!cur_addr) |> Or_error.ok_exn |> Word.to_int |> Or_error.ok_exn |> Char.of_int_exn in
     if Char.is_print k then (
-      cur_string := k :: !cur_string;
-      base_addr := Word.succ !base_addr
+      cur_string := k :: !cur_string
     ) else if (Char.to_int k) = 0 then (
       let str = List.rev !cur_string |> String.of_char_list in
       proj' := (if interesting str then
         Project.tag_memory !proj' (Memory.range seg !base_addr !cur_addr |> Or_error.ok_exn) ascii_string str
-      else
-        !proj');
+      else !proj');
       base_addr  := Word.succ !cur_addr;
       cur_string := []
     ) else (

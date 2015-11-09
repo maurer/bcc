@@ -1,4 +1,5 @@
 open Core_kernel.Std
+open Bin_prot.Std
 open Bap.Std
 
 let info =
@@ -10,6 +11,7 @@ let output =
   let doc = "Specifies the file to dump to." in
   Cmdliner.Arg.(value & opt string "dump" & info ["o"; "out"] ~docv:"OUT" ~doc)
 
+(* Predicate for whether a constant should be considered *)
 let interesting const =
   if Word.(is_zero (const ++ 1)) then false else
   match Word.to_int64 const with
@@ -39,23 +41,65 @@ let extract_const def =
     then None
     else Some((Term.tid def, consts))
 
-let dump_prog (prog : program term) (oc : Out_channel.t) : unit =
-  let fmt = Format.formatter_of_out_channel oc in
-  let consts = Sequence.concat_map (Term.to_sequence sub_t prog) ~f:(fun sub ->
-    Sequence.filter_map
-      (Sequence.concat_map (Term.to_sequence blk_t sub)
-                           ~f:(Term.to_sequence def_t))
-      ~f:extract_const) in
-  Sequence.iter consts ~f:(fun (tid, consts) ->
-    Format.fprintf fmt "%a: %a\n" Tid.pp tid Word.pp_seq consts)
+module Const = struct
+  module T = struct
+    let module_name = Some("Const")
+    type t =
+      | Word of Word.t
+      | String of string with compare, sexp, bin_io
+    let pp fmt k = match k with
+      | Word w   -> Word.pp fmt w
+      | String s -> (Format.pp_print_char fmt '"';
+                     String.pp fmt s;
+                     Format.pp_print_char fmt '"')
+    let hash k = match k with
+      | Word w   -> Word.hash w
+      | String s -> String.hash s
+  end
+  include T
+  include Regular.Make(T)
+end
+
+type const = Const.t
+
+
+let string_tag (_, v) = (Value.tagname v) = "ascii_string"
+
+let first_result rs = Option.map (Sequence.find rs ~f:Result.is_ok) ~f:Result.ok |> Option.join
+
+let normalize (mem : value memmap) (k : word) : const =
+  (* If this constant is not mapped, just use the constant *)
+  if not (Memmap.contains mem k) then Const.Word(k) else
+  (* Check if there is a string at the pointer *)
+  match Memmap.lookup mem k |> Sequence.find ~f:string_tag with
+    (* Extract the tag contents via jank *)
+    | Some (_, v) -> Const.String(Value.to_string v)
+    | None -> (match Memmap.lookup mem k |> Sequence.find ~f:(fun (_, v) -> Value.is Image.section v) with
+      | Some (m, _) -> (
+          match Sequence.map (Sequence.of_list Size.([`r64; `r32; `r16; `r8])) ~f:(fun scale -> Memory.get m ~scale ~addr:k) |> first_result with
+            | Some v -> Const.Word (v)
+            | _ -> Const.Word (k)
+      )
+      | None -> Const.Word (k))
 
 let dump (proj : Project.t) (out_name : string) : unit =
-  Out_channel.with_file out_name ~f:(dump_prog (Project.program proj))
+  Out_channel.with_file out_name ~f:(fun oc ->
+    let fmt  = Format.formatter_of_out_channel oc in
+    let prog = Project.program proj in
+    let mem  = Project.memory proj in
+    let consts = Sequence.concat_map (Term.to_sequence sub_t prog) ~f:(fun sub ->
+      Sequence.filter_map
+        (Sequence.concat_map (Term.to_sequence blk_t sub)
+                             ~f:(Term.to_sequence def_t))
+        ~f:extract_const) in
+    let normed = Sequence.map consts ~f:(fun (tid, ks) ->
+      (tid, Sequence.map ks (normalize mem))) in
+    Sequence.iter normed ~f:(fun (tid, consts) ->
+      Format.fprintf fmt "%a:@ @[%a@]@." Tid.pp tid Const.pp_seq consts))
 
 ;;
 
-Project.register_pass_with_args "bcc_dump" (fun argv proj ->
+Project.register_pass_with_args' "bcc_dump" (fun argv proj ->
   match Cmdliner.Term.eval ~argv (Cmdliner.Term.(const (dump proj) $ output), info) with
     | `Error _ -> exit 1
-    | `Ok () -> proj
-    | _ -> proj)
+    | _ -> ())
