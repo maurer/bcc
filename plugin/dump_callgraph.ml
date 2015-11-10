@@ -14,7 +14,16 @@ let output =
 let dump (proj : Project.t) (out_name : string) : unit =
   let prog = Project.program proj in
   let cg = Program.to_graph prog in
-  Graphlib.to_dot (module Graphlib.Callgraph) ~filename:out_name cg
+  let mem = Project.memory proj in
+ let string_of_node tid =
+    let vx (o : sub term option) : sub term = Option.value_exn o in
+    let vx' (o : word option) : word = Option.value_exn o in
+    let name = Tid.name tid in
+    let node_name = String.sub name 1 ((String.length name) - 1) in
+    let sub = Program.lookup sub_t prog tid |> vx in
+    let addr = Term.get_attr sub subroutine_addr |> vx' in
+    Memmap.lookup mem addr |> Sequence.find ~f:(fun (_, v) -> Value.is Image.symbol v) |> Option.map ~f:(fun (_,v) -> Value.get_exn Image.symbol v) |> Option.value ~default:node_name in
+  Graphlib.to_dot (module Graphlib.Callgraph) ~filename:out_name ~string_of_node cg
 
 ;;
 
