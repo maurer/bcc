@@ -40,7 +40,6 @@ int main(int argc, char* argv[]) {
   for (i = 0; i < igraph_vector_size(&clustering); i++) {
     printf("%li %s\n", (long int)VECTOR(clustering)[i], STR(names, i));
   }
-  printf("\n");
 
   return 0;
 }
