@@ -23,7 +23,7 @@ let dump (proj : Project.t) (out_name : string) : unit =
   let cg = Program.to_graph prog in
   let mem = Project.memory proj in
   let module OL = struct
-    let vertex_properties : (string * string * string option) list = ["id","string",None]
+    let vertex_properties : (string * string * string option) list = ["func_name","string",None]
     let edge_properties : (string * string * string option) list = []
     let map_edge (e : OG.E.t) : (bytes * bytes) list = []
     module Vhash = Graphlib.Callgraph.Node.Table
@@ -37,7 +37,7 @@ let dump (proj : Project.t) (out_name : string) : unit =
       let node_name = String.sub name 1 ((String.length name) - 1) in
       let sub = Program.lookup sub_t prog tid |> vx in
       let addr = Term.get_attr sub subroutine_addr |> vx' in
-      ["id",(Memmap.lookup mem addr |> Sequence.find ~f:(fun (_, v) -> Value.is Image.symbol v) |> Option.map ~f:(fun (_,v) -> Value.get_exn Image.symbol v) |> Option.value ~default:node_name)]
+      ["func_name",(Memmap.lookup mem addr |> Sequence.find ~f:(fun (_, v) -> Value.is Image.symbol v) |> Option.map ~f:(fun (_,v) -> Value.get_exn Image.symbol v) |> Option.value ~default:node_name)]
   end in
   let module OGP = Graph.Graphml.Print(OG)(OL) in
 
