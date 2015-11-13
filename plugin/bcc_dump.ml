@@ -67,7 +67,7 @@ let string_tag (_, v) = (Value.tagname v) = "ascii_string"
 
 let first_result rs = Option.map (Sequence.find rs ~f:Result.is_ok) ~f:Result.ok |> Option.join
 
-let normalize (mem : value memmap) (k : word) : const =
+let rec normalize (mem : value memmap) (k : word) : const =
   (* If this constant is not mapped, just use the constant *)
   if not (Memmap.contains mem k) then Const.Word(k) else
   (* Check if there is a string at the pointer *)
@@ -76,8 +76,9 @@ let normalize (mem : value memmap) (k : word) : const =
     | Some (_, v) -> Const.String(Value.to_string v)
     | None -> (match Memmap.lookup mem k |> Sequence.find ~f:(fun (_, v) -> Value.is Image.section v) with
       | Some (m, _) -> (
-          match Sequence.map (Sequence.of_list Size.([`r64; `r32; `r16; `r8])) ~f:(fun scale -> Memory.get m ~scale ~addr:k) |> first_result with
-            | Some v -> Const.Word (v)
+          (* TODO add `r64 conditionally to the front of the list on 64-bit systems *)
+          match Sequence.map (Sequence.of_list Size.([`r32; `r16; `r8])) ~f:(fun scale -> Memory.get m ~scale ~addr:k) |> first_result with
+            | Some v -> normalize mem v
             | _ -> Const.Word (k)
       )
       | None -> Const.Word (k))
