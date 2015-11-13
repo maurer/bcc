@@ -50,7 +50,7 @@ module Const = struct
     let pp fmt k = match k with
       | Word w   -> Word.pp fmt w
       | String s -> (Format.pp_print_char fmt '"';
-                     String.pp fmt s;
+                     String.pp fmt (String.escaped s);
                      Format.pp_print_char fmt '"')
     let hash k = match k with
       | Word w   -> Word.hash w
