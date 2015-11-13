@@ -38,8 +38,8 @@ showConst (KStr s) = show s
 showConsts consts =
   intercalate ", " $ map showConst $ Set.toList consts
 
-printAbb (addr, consts, _) =
-  putStrLn $ (printf "%08x\t" addr) ++ showConsts consts
+printAbb (addr, consts, quality) =
+  putStrLn $ (printf "%08x\t" addr) ++ showConsts consts ++ " " ++ show quality
 
 main = do
   [clusterFile, constFile, baseFile] <- getArgs
