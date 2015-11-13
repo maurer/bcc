@@ -5,7 +5,7 @@ let ascii_string = Value.Tag.register (module String)
   ~name:"ascii_string"
   ~uuid:"2f9b7b0c-688f-4c67-b978-c3dd76ce8963"
 
-let interesting str = (String.length str) > 4
+let interesting str = (String.length str) > 3
 
 let strings_segment (proj : Project.t) (seg : mem) : Project.t =
   let cur_string = ref [] in

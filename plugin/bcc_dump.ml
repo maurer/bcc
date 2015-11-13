@@ -28,7 +28,7 @@ let interesting const =
           | _ -> true)
     | Error(_) -> true
 
-let extract_const def =
+let extract_const base def =
   let extractor = object(self)
     inherit [word Sequence.t] Bil.visitor
     method! visit_int k seq =
@@ -39,7 +39,7 @@ let extract_const def =
   let consts = Exp.fold extractor ~init:Sequence.empty (Def.rhs def) in
   if Sequence.is_empty consts
     then None
-    else Some((Term.tid def, consts))
+    else Some((base, Term.tid def, consts))
 
 module Const = struct
   module T = struct
@@ -91,11 +91,11 @@ let dump (proj : Project.t) (out_name : string) : unit =
       Sequence.filter_map
         (Sequence.concat_map (Term.to_sequence blk_t sub)
                              ~f:(Term.to_sequence def_t))
-        ~f:extract_const) in
-    let normed = Sequence.map consts ~f:(fun (tid, ks) ->
-      (tid, Sequence.map ks (normalize mem))) in
-    Sequence.iter normed ~f:(fun (tid, consts) ->
-      Format.fprintf fmt "%a:@ @[%a@]@." Tid.pp tid Const.pp_seq consts))
+        ~f:(extract_const (Tid.name (Term.tid sub)))) in
+    let normed = Sequence.map consts ~f:(fun (base, tid, ks) ->
+      (base, tid, Sequence.map ks (normalize mem))) in
+    Sequence.iter normed ~f:(fun (base, tid, consts) ->
+      Format.fprintf fmt "%s:%a:%a@." base Tid.pp tid Const.pp_seq consts))
 
 ;;
 
