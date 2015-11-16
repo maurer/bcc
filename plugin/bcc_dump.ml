@@ -67,7 +67,8 @@ let string_tag (_, v) = (Value.tagname v) = "ascii_string"
 
 let first_result rs = Option.map (Sequence.find rs ~f:Result.is_ok) ~f:Result.ok |> Option.join
 
-let rec normalize (mem : value memmap) (k : word) : const =
+let rec normalize ?(n=10) (mem : value memmap) (k : word) : const =
+  if n <= 0 then Const.Word(k) else
   (* If this constant is not mapped, just use the constant *)
   if not (Memmap.contains mem k) then Const.Word(k) else
   (* Check if there is a string at the pointer *)
@@ -78,7 +79,7 @@ let rec normalize (mem : value memmap) (k : word) : const =
       | Some (m, _) -> (
           (* TODO add `r64 conditionally to the front of the list on 64-bit systems *)
           match Sequence.map (Sequence.of_list Size.([`r32; `r16; `r8])) ~f:(fun scale -> Memory.get m ~scale ~addr:k) |> first_result with
-            | Some v -> normalize mem v
+            | Some v -> normalize mem v ~n:(n - 1)
             | _ -> Const.Word (k)
       )
       | None -> Const.Word (k))
