@@ -19,3 +19,5 @@ cluster-callgraph <${graph}> ${clusters}
 
 wait ${consts_pid}
 load-constants ${clusters} ${consts}
+
+rm ${consts} ${graph} ${clusters}
