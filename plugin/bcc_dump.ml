@@ -95,8 +95,10 @@ let dump (proj : Project.t) (out_name : string) : unit =
         ~f:(extract_const (Tid.name (Term.tid sub)))) in
     let normed = Sequence.map consts ~f:(fun (base, tid, ks) ->
       (base, tid, Sequence.map ks (normalize mem))) in
-    Sequence.iter normed ~f:(fun (base, tid, consts) ->
-      Format.fprintf fmt "%s:%a:%a@." base Tid.pp tid Const.pp_seq consts))
+    Sequence.iter normed ~f:(fun (base, tid, consts) -> (
+      Format.fprintf fmt "%s:%a:[: " base Tid.pp tid;
+      Sequence.iter ~f:(fun k -> Format.fprintf fmt "%a; " Const.pp k) consts;
+      Format.fprintf fmt ":]@.")))
 
 ;;
 

@@ -23,9 +23,8 @@ explodeConstPool' n@('0':'x':_) =
 explodeConstPool' s@('"':_) =
   let [(k :: String, r)] = reads s in
   (KStr k) : explodeConstPool' r
+explodeConstPool' "; :]" = []
 explodeConstPool' (';':' ':r) = explodeConstPool' r
-explodeConstPool' " :]" = []
-
 
 explodeConst :: String -> (String, Word64, [Const])
 explodeConst constLine =
