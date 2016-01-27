@@ -12,10 +12,7 @@
 
 For each believed benign binary, run
 ```
-bap -ldump_callgraph -dump_callgraph-out=${target}.graphml ${target}
-bap -lstrings -lbcc_dump --bcc_dump-out=${target}.consts
-cluster-callgraph <${target}.graphml|sort> ${target}.clusters
-load-constants ${target}.clusters ${target}.consts > ${target}.db
+generate_db ${target} > ${target}.db
 ```
 to generate a callgraph, dump constants, cluster the callgraph, and convert the results in a constant database.
 
@@ -28,10 +25,7 @@ merge-db ${target1}.db ${target2}.db ... > merged.db
 
 For a potentially tampered with program ${target}, run
 ```
-bap -ldump_callgraph -dump_callgraph-out=${target}.graphml ${target}
-bap -lstrings -lbcc_dump --bcc_dump-out=${target}.consts
-cluster-callgraph <${target}.graphml|sort> ${target}.clusters
-test-abberations ${target}.clusters ${target}.consts merged.db > output
+test_program ${target} merged.db > out
 ```
 
 The resulting output file will contain a list of abberant constants, ranked by weirdness (a constant in a component which matched well with a component in the database, but which did not appear in that component, will be the highest weirdness) with addresses to jump to.
