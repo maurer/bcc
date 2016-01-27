@@ -55,6 +55,7 @@ module Const = struct
     let hash k = match k with
       | Word w   -> Word.hash w
       | String s -> String.hash s
+    let version = ""
   end
   include T
   include Regular.Make(T)
