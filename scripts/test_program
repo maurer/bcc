@@ -19,3 +19,5 @@ cluster-callgraph <${graph}> ${clusters}
 
 wait ${consts_pid}
 test-abberations ${clusters} ${consts} $2
+
+rm ${clusters} ${graph} ${consts}
