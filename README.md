@@ -1,8 +1,8 @@
 # Building
 
-* Install (Nix)[https://nixos.org/nix/download.html] or (NixOS)[http://nixos.org/nixos/download.html]
-* Clone my supplementary packages (repo)[https://github.com/maurer/nixlocal]
-* Clone (nixpkgs)[https://github.com/nixos/nixpkgs] if you have not done so during your installation
+* Install [Nix](https://nixos.org/nix/download.html) or [NixOS](http://nixos.org/nixos/download.html)
+* Clone my supplementary packages [repo](https://github.com/maurer/nixlocal)
+* Clone [nixpkgs](https://github.com/nixos/nixpkgs) if you have not done so during your installation
 * Set `NIX_PATH` to have nixpkgs pointing at the master repo, and local pointing at my nixlocal repository
 * Run `nix-build` in the source directory to do an in place build, or `nix-env -f . -i` to install.
 
