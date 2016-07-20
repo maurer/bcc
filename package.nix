@@ -1,4 +1,4 @@
-{stdenv, bap, bin_prot, igraph, clang, ghcWithPackages, ocamlfind}:
+{stdenv, bap, bin_prot, igraph, clang, ghcWithPackages}:
 
 let ghc = ghcWithPackages (pkgs: [pkgs.multiset]); in
 
@@ -7,11 +7,11 @@ stdenv.mkDerivation rec {
   version = "0";
   src = ./.;
 
-  buildInputs = [ clang bin_prot bap igraph ghc ocamlfind ];
+  buildInputs = [ clang bin_prot bap igraph ghc ];
 
   buildPhase = ''
     clang -ligraph cluster/cluster.c -o cluster-callgraph
-    ${bap}/bin/bapbuild -pkg bin_prot.syntax plugin/bcc_dump.plugin plugin/strings.plugin plugin/dump_callgraph.plugin
+    ${bap}/bin/bapbuild plugin/bcc_dump/bcc_dump.plugin plugin/strings/strings.plugin plugin/dump_callgraph/dump_callgraph.plugin
     ghc --make aggregate/Test aggregate/Util.hs aggregate/Parse.hs
     ghc --make aggregate/Convert aggregate/Util.hs aggregate/Parse.hs
     ghc --make aggregate/Merge aggregate/Util.hs aggregate/Parse.hs

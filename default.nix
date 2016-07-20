@@ -1,3 +1,3 @@
-{ local ? (import ../../../nixlocal {}) }:
+{ local ? (import ~/.nix-defexpr/local {}) }:
 
-local.lib.allCall (import ./package.nix) {igraph = local.pkgs.igraph; ocamlfind = local.pkgs.findlib;}
+local.lib.allCall (import ./package.nix) {igraph = local.pkgs.igraph;}

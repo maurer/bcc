@@ -37,4 +37,4 @@ let strings (proj : Project.t) : Project.t =
 
 ;;
 
-Project.register_pass "strings" strings
+Project.register_pass ~name:"strings" strings
