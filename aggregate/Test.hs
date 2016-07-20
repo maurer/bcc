@@ -71,4 +71,4 @@ main = do
   let constDB = foldl updateConstDB Map.empty $ mapMaybe (toCluster clusterMap) consts
   let clusterSim = Map.foldlWithKey (jaccardOptimal base) Map.empty constDB
   let abberations = sortBy (\(_,(_,x)) (_,(_,x')) -> compare x' x) $ Map.toList $ foldl' updateAbberants Map.empty $ mapMaybe (abberant base clusterSim clusterMap) consts
-  mapM printAbb $ filter (\(k,_) -> isStr k) abberations
+  mapM printAbb abberations

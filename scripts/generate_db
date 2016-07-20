@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 export BAP_PLUGIN_PATH=PUT_PLUGIN_PATH_HERE
+bap=PUT_BAP_HERE
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 PATH=$DIR:$PATH
 
@@ -8,10 +9,10 @@ consts=`mktemp`
 graph=`mktemp`
 clusters=`mktemp`
 
-bap -lstrings -lbcc_dump --bcc_dump-out=${consts} $@ &
+${bap} -lstrings -lbcc_dump --bcc_dump-out=${consts} $@ &
 consts_pid=$!
 
-bap -ldump_callgraph --dump_callgraph-out=${graph} $@ &
+${bap} -ldump_callgraph --dump_callgraph-out=${graph} $@ &
 graph_pid=$!
 
 wait ${graph_pid}
