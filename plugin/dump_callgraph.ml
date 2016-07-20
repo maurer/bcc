@@ -1,6 +1,9 @@
 open Core_kernel.Std
+open Graphlib.Std
 open Bin_prot.Std
 open Bap.Std
+
+include Self()
 
 let info =
   let doc = "Dump callgraph in dot format"; in
@@ -17,7 +20,7 @@ let uid h find add =
     | Some(v) -> v
     | None -> (incr n; add h ~key:x ~data:!n; !n)
 
-module OG = Graphlib.To_ocamlgraph(Graphlib.Callgraph)
+module OG = Graphlib.To_ocamlgraph(Graphs.Callgraph)
 let dump (proj : Project.t) (out_name : string) : unit =
   let prog = Project.program proj in
   let cg = Program.to_graph prog in
@@ -25,10 +28,10 @@ let dump (proj : Project.t) (out_name : string) : unit =
   let module OL = struct
     let vertex_properties : (string * string * string option) list = ["func_name","string",None]
     let edge_properties : (string * string * string option) list = []
-    let map_edge (e : OG.E.t) : (bytes * bytes) list = []
-    module Vhash = Graphlib.Callgraph.Node.Table
+    let map_edge (e : OG.E.t) : (string * string) list = []
+    module Vhash = Graphs.Callgraph.Node.Table
     let vertex_uid = uid (Vhash.create ()) Vhash.find Vhash.add
-    module Ehash = Graphlib.Callgraph.Edge.Table
+    module Ehash = Graphs.Callgraph.Edge.Table
     let edge_uid = uid (Ehash.create ()) Ehash.find Ehash.add
     let map_vertex tid =
       let vx (o : sub term option) : sub term = Option.value_exn o in
@@ -41,14 +44,14 @@ let dump (proj : Project.t) (out_name : string) : unit =
   end in
   let module OGP = Graph.Graphml.Print(OG)(OL) in
 
-Out_channel.with_file out_name ~f:(fun oc ->
-   let fmt = Format.formatter_of_out_channel oc in
-   OGP.print fmt cg
- )
+  Out_channel.with_file out_name ~f:(fun oc ->
+      let fmt = Format.formatter_of_out_channel oc in
+      OGP.print fmt cg
+    )
 
 ;;
 
-Project.register_pass_with_args' "dump_callgraph" (fun argv proj ->
-  match Cmdliner.Term.eval ~argv (Cmdliner.Term.(const (dump proj) $ output), info) with
+Project.register_pass' (fun proj ->
+    match Cmdliner.Term.eval ~argv (Cmdliner.Term.(const (dump proj) $ output), info) with
     | `Error _ -> exit 1
     | _ -> ())
